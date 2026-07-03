@@ -1,63 +1,172 @@
+import { motion, useMotionValue, useSpring } from "motion/react";
 import { Code2, Lightbulb, Rocket } from "lucide-react";
 
-export function About() {
+const EASE = [0.16, 1, 0.3, 1] as const;
+const VP = { once: true, amount: 0.1 } as const;
+
+/** Clips each word upward into view with blur */
+function WordReveal({ text, delay = 0 }: { text: string; delay?: number }) {
+  const words = text.split(" ");
   return (
-    <section id="about" className="py-24 px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-6xl md:text-8xl font-bold mb-6 font-['Space_Grotesk',sans-serif] inline-flex items-center gap-4 justify-center flex-wrap">
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient-xy">
-              Hi there!!
-            </span>
-            <span className="text-7xl md:text-9xl animate-wave inline-block">👋</span>
-          </h2>
-          <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
-        </div>
-        
-        <div className="grid lg:grid-cols-3 gap-6 mb-12">
-          <div className="group p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-sm rounded-2xl border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300 hover:scale-105">
-            <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Code2 className="w-6 h-6 text-blue-400" />
+    <>
+      {words.map((word, i) => (
+        <span key={i} style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}>
+          <motion.span
+            style={{ display: "inline-block" }}
+            initial={{ y: "110%", filter: "blur(8px)" }}
+            whileInView={{ y: "0%", filter: "blur(0px)" }}
+            viewport={VP}
+            transition={{ duration: 0.7, delay: delay + i * 0.09, ease: EASE }}
+          >
+            {word}{i < words.length - 1 ? "\u00A0" : ""}
+          </motion.span>
+        </span>
+      ))}
+    </>
+  );
+}
+
+/** 3D tilt card for trait items */
+function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+  const springRotX = useSpring(rotateX, { stiffness: 280, damping: 28 });
+  const springRotY = useSpring(rotateY, { stiffness: 280, damping: 28 });
+
+  return (
+    <motion.div
+      style={{ rotateX: springRotX, rotateY: springRotY, transformStyle: "preserve-3d" }}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        rotateX.set(-y * 5);
+        rotateY.set(x * 5);
+      }}
+      onMouseLeave={() => { rotateX.set(0); rotateY.set(0); }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function About() {
+  const traits = [
+    { icon: Code2,     label: "Design Focus",      desc: "Strong eye for design and performance optimization" },
+    { icon: Rocket,    label: "Full-Stack Journey", desc: "Currently upskilling in modern web development" },
+    { icon: Lightbulb, label: "AI-ML Enthusiast",  desc: "Blending intelligent systems with web apps" },
+  ];
+
+  return (
+    <section className="py-24 px-6 lg:px-12 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-16 items-start">
+
+          {/* Left */}
+          <div>
+            {/* Growing Divider Line */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={VP}
+              transition={{ duration: 0.8, ease: EASE }}
+              className="w-12 h-px bg-[#111111]/30 mb-4 origin-left"
+            />
+
+            <motion.span
+              initial={{ opacity: 0, y: 15, filter: "blur(6px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={VP}
+              transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+              className="text-xs font-semibold text-[#999] tracking-widest uppercase mb-4 block"
+            >
+              About
+            </motion.span>
+
+            <h2
+              className="text-5xl md:text-6xl lg:text-7xl font-black text-[#111] tracking-tight leading-[0.9] mb-8"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              <WordReveal text="Hi there!! 👋" delay={0.2} />
+            </h2>
+
+            <div className="flex flex-col gap-4">
+              {traits.map(({ icon: Icon, label, desc }, i) => (
+                <motion.div
+                  key={label}
+                  initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
+                  whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  viewport={VP}
+                  transition={{ duration: 0.6, delay: 0.3 + i * 0.12, ease: EASE }}
+                >
+                  <TiltCard className="flex items-start gap-4 group p-3 rounded-xl hover:bg-[#F7F7F5] transition-colors duration-200">
+                    <motion.div
+                      whileHover={{ scale: 1.15, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                      className="w-10 h-10 bg-[#F2F2F0] rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#111] transition-colors duration-300"
+                    >
+                      <Icon className="w-5 h-5 text-[#555] group-hover:text-white transition-colors duration-300" />
+                    </motion.div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#111]">{label}</p>
+                      <p className="text-sm text-[#777] mt-0.5">{desc}</p>
+                    </div>
+                  </TiltCard>
+                </motion.div>
+              ))}
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Design Focus</h3>
-            <p className="text-slate-400">Strong eye for design and performance optimization</p>
           </div>
 
-          <div className="group p-6 bg-gradient-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-sm rounded-2xl border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 hover:scale-105">
-            <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Rocket className="w-6 h-6 text-purple-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Full-Stack Journey</h3>
-            <p className="text-slate-400">Currently upskilling in modern web development</p>
-          </div>
+          {/* Right */}
+          <motion.div
+            initial={{ opacity: 0, x: 40, filter: "blur(10px)" }}
+            whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+            viewport={VP}
+            transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
+            className="flex flex-col justify-center gap-8 lg:pt-16"
+          >
+            <motion.p
+              initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={VP}
+              transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
+              className="text-lg md:text-xl text-[#333] leading-relaxed"
+            >
+              A <strong className="text-[#111] font-semibold">Fullstack Developer</strong> with a strong eye for design, performance, and user experience. I enjoy building clean, responsive, and scalable web interfaces that turn ideas into engaging digital experiences.
+            </motion.p>
 
-          <div className="group p-6 bg-gradient-to-br from-pink-500/10 to-pink-600/5 backdrop-blur-sm rounded-2xl border border-pink-500/20 hover:border-pink-500/40 transition-all duration-300 hover:scale-105">
-            <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Lightbulb className="w-6 h-6 text-pink-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">AI-ML Enthusiast</h3>
-            <p className="text-slate-400">Blending intelligent systems with web apps</p>
-          </div>
-        </div>
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={VP}
+              transition={{ duration: 0.7, delay: 0.45, ease: EASE }}
+              className="w-16 h-px bg-[#E0E0DC] origin-left"
+            />
 
-        <div className="space-y-6">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 rounded-3xl blur-xl"></div>
-            <div className="relative bg-slate-900/50 backdrop-blur-xl rounded-3xl p-8 md:p-12 border border-slate-700/50">
-              <p className="text-lg md:text-xl text-slate-300 leading-relaxed">
-                A <span className="text-blue-400 font-semibold">Frontend Developer</span> with a strong eye for design, performance, and user experience, currently upskilling in <span className="text-purple-400 font-semibold">Full-Stack Web Development</span>. I enjoy building clean, responsive, and scalable web interfaces that turn ideas into engaging digital experiences.
-              </p>
-            </div>
-          </div>
+            <motion.p
+              initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={VP}
+              transition={{ duration: 0.7, delay: 0.55, ease: EASE }}
+              className="text-lg md:text-xl text-[#333] leading-relaxed"
+            >
+              Currently learning <strong className="text-[#111] font-semibold">Machine Learning (ML)</strong>, driven by the vision of blending intelligent systems with modern web applications to solve real-world problems. Passionate about continuous learning, exploring emerging technologies, and collaborating on innovative projects that create meaningful impact.
+            </motion.p>
 
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-orange-600/20 rounded-3xl blur-xl"></div>
-            <div className="relative bg-slate-900/50 backdrop-blur-xl rounded-3xl p-8 md:p-12 border border-slate-700/50">
-              <p className="text-lg md:text-xl text-slate-300 leading-relaxed">
-                An <span className="text-pink-400 font-semibold">AI-ML enthusiast</span>, driven by the vision of blending intelligent systems with modern web applications to solve real-world problems. Passionate about continuous learning, exploring emerging technologies, and collaborating on innovative projects that create meaningful impact.
-              </p>
-            </div>
-          </div>
+            <motion.a
+              href="#contact"
+              initial={{ opacity: 0, y: 15, filter: "blur(4px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={VP}
+              transition={{ duration: 0.6, delay: 0.68, ease: EASE }}
+              whileHover={{ x: 4 }}
+              className="relative inline-flex items-center gap-1.5 text-sm font-medium text-[#111] w-fit group"
+            >
+              Get in Touch ↗
+              <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#111] group-hover:w-full transition-all duration-300 ease-out" />
+            </motion.a>
+          </motion.div>
         </div>
       </div>
     </section>

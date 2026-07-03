@@ -1,98 +1,211 @@
-import { Briefcase, ExternalLink, MapPin } from "lucide-react";
+import { motion, useInView, useScroll, useTransform } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+const VP = { once: true, amount: 0.1 } as const;
+
+/** Safe count-up using requestAnimationFrame — no motion/react animate dependency */
+function CountUp({ target, suffix = "" }: { target: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [value, setValue] = useState(0);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+
+  useEffect(() => {
+    if (!inView) return;
+    const duration = 1800;
+    const startTime = performance.now();
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+      setValue(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [inView, target]);
+
+  return <span ref={ref}>{value}{suffix}</span>;
+}
+
+/** Sequential heading reveal: / → EXPERIENCE letters */
+function SectionHeading({ title, delay = 0 }: { title: string; delay?: number }) {
+  return (
+    <div className="mb-16">
+      <motion.div
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={VP}
+        transition={{ duration: 0.7, delay, ease: EASE }}
+        className="w-12 h-px bg-[#111111]/30 mb-4 origin-left"
+      />
+      <div
+        className="text-4xl md:text-5xl font-black text-[#111] tracking-tight"
+        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+      >
+        <span style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}>
+          <motion.span
+            style={{ display: "inline-block" }}
+            initial={{ y: "110%", opacity: 0 }}
+            whileInView={{ y: "0%", opacity: 1 }}
+            viewport={VP}
+            transition={{ duration: 0.5, delay: delay + 0.1, ease: EASE }}
+          >
+            /
+          </motion.span>
+        </span>
+        {title.split("").map((ch, i) => (
+          <span key={i} style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}>
+            <motion.span
+              style={{ display: "inline-block" }}
+              initial={{ y: "110%", opacity: 0, filter: "blur(6px)" }}
+              whileInView={{ y: "0%", opacity: 1, filter: "blur(0px)" }}
+              viewport={VP}
+              transition={{ duration: 0.45, delay: delay + 0.18 + i * 0.03, ease: EASE }}
+            >
+              {ch === " " ? "\u00A0" : ch}
+            </motion.span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const experiences = [
+  {
+    role: "Fullstack Developer",
+    company: "Secret Destiny Tourism",
+    period: "Jun 2025 – Present",
+    description: "Designing, building, and optimizing trekking adventure platforms and full-stack solutions, integrating responsive user interfaces with solid backend APIs.",
+    tags: ["React", "TypeScript", "Node.js", "Express.js", "Next.js"],
+  },
+  {
+    role: "AI Intern",
+    company: "Pinnacle Labs",
+    period: "Jan 2024 – Jun 2025",
+    description: "Developed and optimized machine learning models, working on computer vision and intelligent system integrations to solve real-world problems.",
+    tags: ["Python", "TensorFlow", "Computer Vision", "Machine Learning"],
+  },
+];
+
+const stats = [
+  { value: 2, suffix: "+", label: "Years Learning" },
+  { value: 3, suffix: "+", label: "Projects Built" },
+  { value: 2, suffix: "",  label: "Internships"   },
+  { value: 5, suffix: "+", label: "Happy Clients"  },
+];
 
 export function Experience() {
-  const experiences = [
-    {
-      role: "Full Stack Web Developer",
-      company: "Secret Destiny Tourism",
-      type: "Startup",
-      website: "https://secret-destiny.vercel.app/",
-      current: false,
-      description: "Building end-to-end web solutions for tourism platform",
-    },
-    {
-      role: "Intern",
-      company: "Pinnacle Labs",
-      type: "Currently",
-      current: true,
-      description: "Learning and contributing to innovative tech projects",
-    },
-  ];
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Animated timeline line that grows as section enters view
+  const { scrollYProgress } = useScroll({
+    target: listRef,
+    offset: ["start 80%", "end 20%"],
+  });
+  const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   return (
-    <section id="experience" className="py-24 px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-bold mb-4 font-['Space_Grotesk',sans-serif]">
-            <span className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              Work Experience
-            </span>
-          </h2>
-          <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
-        </div>
+    <section className="py-24 px-6 lg:px-12 bg-white">
+      <div className="max-w-7xl mx-auto">
 
-        <div className="space-y-8">
-          {experiences.map((exp, index) => (
-            <div
-              key={index}
-              className="group relative"
-            >
-              {/* Gradient border effect */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-              
-              {/* Card content */}
-              <div className="relative bg-slate-900/50 backdrop-blur-xl rounded-3xl p-8 md:p-10 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300">
-                <div className="flex flex-col md:flex-row gap-6">
-                  {/* Icon */}
-                  <div className="shrink-0">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center border border-blue-500/30 group-hover:scale-110 transition-transform duration-300">
-                      <Briefcase className="w-8 h-8 text-blue-400" />
-                    </div>
+        <SectionHeading title="EXPERIENCE" delay={0} />
+
+        {/* Experience list — with growing timeline line */}
+        <div className="relative mb-20" ref={listRef}>
+          {/* Vertical timeline line */}
+          <div className="absolute left-0 top-0 bottom-0 w-px bg-[#E8E8E4] hidden md:block" />
+          <motion.div
+            className="absolute left-0 top-0 w-px bg-[#111] hidden md:block origin-top"
+            style={{ height: lineHeight }}
+          />
+
+          <div className="flex flex-col divide-y divide-[#E8E8E4]">
+            {experiences.map((exp, index) => (
+              <motion.div
+                key={exp.role}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50, filter: "blur(8px)" }}
+                whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                viewport={VP}
+                transition={{ duration: 0.7, delay: index * 0.12, ease: EASE }}
+                className="py-10 grid md:grid-cols-[auto_1fr_auto] gap-6 md:gap-12 items-start group md:pl-8"
+              >
+                {/* Timeline dot */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={VP}
+                  transition={{ duration: 0.4, delay: index * 0.12 + 0.3, type: "spring", stiffness: 300 }}
+                  className="hidden md:block absolute left-[-4px] w-[9px] h-[9px] rounded-full bg-[#111] border-2 border-white"
+                  style={{ top: `${index === 0 ? "42px" : "calc(50% + 42px)"}` }}
+                />
+
+                <span className="text-sm font-mono text-[#BBBBBB] mt-1" style={{ minWidth: "2rem" }}>
+                  0{index + 1}
+                </span>
+
+                <div>
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2">
+                    <h3
+                      className="text-xl md:text-2xl font-bold text-[#111] tracking-tight group-hover:text-[#333] transition-colors duration-200"
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    >
+                      {exp.role}
+                    </h3>
+                    <span className="text-[#999] text-sm font-medium">@ {exp.company}</span>
                   </div>
-                  
-                  {/* Content */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between flex-wrap gap-4 mb-4">
-                      <div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 font-['Space_Grotesk',sans-serif]">
-                          {exp.role}
-                        </h3>
-                        <div className="flex items-center gap-2 text-slate-300 mb-2">
-                          <MapPin className="w-4 h-4" />
-                          <span className="text-lg">{exp.company}</span>
-                          <span className="text-slate-500">•</span>
-                          <span className="text-slate-400">{exp.type}</span>
-                        </div>
-                      </div>
-                      
-                      {exp.current && (
-                        <span className="px-4 py-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-green-400 rounded-full text-sm font-semibold">
-                          Current Position
-                        </span>
-                      )}
-                    </div>
-                    
-                    <p className="text-slate-400 mb-4">
-                      {exp.description}
-                    </p>
-                    
-                    {exp.website && (
-                      <a
-                        href={exp.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600/20 border border-blue-500/30 text-blue-400 rounded-xl hover:bg-blue-600/30 hover:border-blue-500/50 transition-all duration-300 font-semibold group/link"
+                  <p className="text-sm text-[#666] mb-4 max-w-xl leading-relaxed">{exp.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {exp.tags.map((tag, ti) => (
+                      <motion.span
+                        key={tag}
+                        initial={{ opacity: 0, scale: 0.8, y: 6 }}
+                        whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                        viewport={VP}
+                        transition={{ delay: index * 0.12 + ti * 0.06 + 0.3, ease: EASE, duration: 0.35 }}
+                        className="px-3 py-1 bg-[#F2F2F0] text-[#555] text-xs font-medium rounded-full border border-[#E8E8E4]"
                       >
-                        Visit Website
-                        <ExternalLink className="w-4 h-4 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
-                      </a>
-                    )}
+                        {tag}
+                      </motion.span>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
+
+                <span className="text-sm text-[#999] font-medium whitespace-nowrap">{exp.period}</span>
+              </motion.div>
+            ))}
+          </div>
         </div>
+
+        {/* Stats — count-up + scale entrance */}
+        <motion.div
+          initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={VP}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="grid grid-cols-2 md:grid-cols-4 border border-[#E8E8E4] rounded-2xl overflow-hidden"
+        >
+          {stats.map(({ value, suffix, label }, i) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={VP}
+              transition={{ duration: 0.5, delay: i * 0.1, ease: EASE }}
+              whileHover={{ backgroundColor: "#F7F7F5", scale: 1.02 }}
+              className="flex flex-col items-center justify-center py-10 px-4 border-r border-b border-[#E8E8E4] last:border-r-0 transition-colors duration-300"
+            >
+              <span
+                className="text-5xl md:text-6xl font-black text-[#111] tracking-tight leading-none mb-2"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                <CountUp target={value} suffix={suffix} />
+              </span>
+              <span className="text-xs text-[#999] font-medium tracking-wide uppercase">{label}</span>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );

@@ -1,85 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 
-/* Custom animations */
-@keyframes gradient-xy {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-@keyframes wave {
-  0% {
-    transform: rotate(0deg);
-  }
-  10% {
-    transform: rotate(14deg);
-  }
-  20% {
-    transform: rotate(-8deg);
-  }
-  30% {
-    transform: rotate(14deg);
-  }
-  40% {
-    transform: rotate(-4deg);
-  }
-  50% {
-    transform: rotate(10deg);
-  }
-  60% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(0deg);
-  }
-}
-
-.animate-gradient-xy {
-  background-size: 400% 400%;
-  animation: gradient-xy 3s ease infinite;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-wave {
-  animation: wave 2.5s ease-in-out infinite;
-  transform-origin: 70% 70%;
-  display: inline-block;
-}
-
-/* Smooth scrolling */
+/* ── Smooth scrolling ─────────────────────────────── */
 html {
-  scroll-behavior: smooth;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
+/* ── Custom cursor (desktop only) ─────────────────── */
+@media (hover: hover) and (pointer: fine) {
+  *, a, button {
+    cursor: none !important;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #0a0a0f;
+/* ── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #F7F7F5; }
+::-webkit-scrollbar-thumb { background: #CCCCCA; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #999997; }
+
+/* ── Text selection ───────────────────────────────── */
+::selection { background: #111111; color: #ffffff; }
+
+/* ── GPU acceleration for animated elements ───────── */
+.will-transform { will-change: transform; }
+
+/* ── Clip-path image reveal ───────────────────────── */
+@keyframes clipReveal {
+  from { clip-path: inset(100% 0 0 0); }
+  to   { clip-path: inset(0% 0 0 0); }
 }
 
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #2563eb, #7c3aed);
+/* ── Reduced motion overrides ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

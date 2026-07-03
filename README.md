@@ -1,7 +1,7 @@
 
-  # Portfolio website for Soham
+  # Portfolio Website for Soham
 
-  This is a code bundle for Portfolio website for Soham. The original project is available at https://www.figma.com/design/0P0Rc39KjznalZbXtLk1uV/Portfolio-website-for-Soham.
+  A modern, responsive portfolio website showcasing projects and skills. Built with React, Vite, and TailwindCSS.
 
   ## Running the code
 
